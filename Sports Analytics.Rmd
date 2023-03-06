@@ -1,0 +1,77 @@
+---
+title: "Sports Analytics"
+author: "Usman Derek Yahaya"
+date: "2023-03-06"
+output: html_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+I had analyzed the 2022 fifa world cup, using StatsBomb i extracted and analysed the shots and goals totals for each team, then explored average shots and goals per game.  
+
+## Install Libraries
+```{r}
+library(ggplot2)
+library(StatsBombR)
+```
+
+## Filter Competition and Season
+This filters the competitions to return the world cup data, using the dplyrʼs ʻfilterʼ function, to just the 2022 FIFA World Cup. 
+```{r, echo=FALSE}
+Comp <- FreeCompetitions() %>%
+  filter(competition_id==43 & season_name=="2022")
+```
+
+## Extract Matches Data and Assisgn to Dataframe
+```{r}
+Matches <- FreeMatches(Comp)
+```
+
+## Assign StatsBombData event data for 2022 FIFA World Cup
+```{r}
+StatsBombData <- free_allevents(MatchesDF = Matches, Parallel = T)
+```
+
+## Clean Dataframe
+```{r}
+StatsBombData = allclean(StatsBombData) 
+```
+
+## Extract shots and goals totals 
+```{r}
+shots_goals = StatsBombData %>%
+  group_by(team.name) %>%
+  summarise(shots = sum(type.name=="Shot", na.rm = TRUE),
+            goals = sum(shot.outcome.name=="Goal", na.rm = TRUE))
+```
+
+## Display Data Structure
+```{r}
+str(shots_goals)
+```
+
+
+## Plot Total Shots by Teams 
+```{r}
+ggplot(data = shots_goals,
+       aes(x = reorder(team.name, shots), y = shots)) +
+  geom_bar(stat = "identity", width = 0.7, fill = "Red") +
+  labs(y="Shots") +
+  theme(axis.title.y = element_blank()) +
+  scale_y_continuous( expand = c(0,0)) +  
+  coord_flip()
+```
+
+
+## Plot Total Goals by Teams 
+```{r}
+ggplot(data = shots_goals,
+       aes(x = reorder(team.name, shots), y = goals)) +
+  geom_bar(stat = "identity", width = 0.7, fill = "#00abff") +
+  labs(y="Goals") +
+  theme(axis.title.y = element_blank()) +
+  scale_y_continuous( expand = c(0,0)) +  
+  coord_flip()
+```
